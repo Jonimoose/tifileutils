@@ -68,10 +68,13 @@ main(int argc, char *argv[])
         {"help", 0, 0, 'h'},
         {"version", 0, 0, 'V'},
         {"entry", required_argument, 0, 'e'},
-        {"attr", 0, required_argument, 'a'},
+        {"attr", required_argument, 0, 'a'},
         {"rename", required_argument, 0, 'r'},
         {"folder", required_argument, 0, 'f'},
         {"info", required_argument, 0, 'i'},
+        {"comment", required_argument, 0, 'C'},
+        {"create", required_argument, 0, 'c'},
+        {"type", required_argument, 0, 't'},
         {"verbose", 0, &verbose_flag, 'v'},
         {0, 0, 0, 0}
     };
@@ -79,10 +82,10 @@ main(int argc, char *argv[])
     int option_index = 0;
     int entry=0;
     int attr=-1;
-    char *newname=NULL, *foldname=NULL;
+    char *name=NULL, *foldname=NULL, *comment=NULL;
     FileContent *regular;
 
-    while ((c = getopt_long(argc, argv, ":hVvi:a:r:e:", long_options, &option_index)) != -1) {
+    while ((c = getopt_long(argc, argv, ":hVvi:f:c:a:r:e:n:t:", long_options, &option_index)) != -1) {
     switch (c) {
         case 'V':
             printf("Insert Verison Text here\n");
@@ -96,25 +99,43 @@ main(int argc, char *argv[])
                 entry= (int)strtol(optarg, NULL, 10);
             break;
         case 'r':
-            if ((curmode==MODE_NONE || curmode==MODE_MOD) && optarg){
+            if (curmode!=MODE_HELP && optarg){
                 curmode = MODE_MOD;
-                newname=optarg;
+                name=optarg;
+            }
+            else {
+                curmode = MODE_HELP;
+            }
+            break;
+        case 'n':
+            if (curmode!=MODE_HELP && optarg){
+                curmode = MODE_MOD;
+                name=optarg;
             }
             else {
                 curmode = MODE_HELP;
             }
             break;
         case 'f':
-            if ((curmode==MODE_NONE || curmode==MODE_MOD) && optarg){
+            if (curmode!=MODE_HELP && optarg){
                 curmode = MODE_MOD;
                 foldname=optarg;
             }
             else {
                 curmode = MODE_HELP;
             }
-            break;    
+            break;
+        case 'C':
+            if (curmode!=MODE_HELP && optarg){
+                curmode = MODE_MOD;
+                comment=optarg;
+            }
+            else {
+                curmode = MODE_HELP;
+            }
+            break;
         case 'a':
-            if ((curmode==MODE_NONE || curmode==MODE_MOD) && optarg){
+            if (curmode!=MODE_NONE && optarg){
                 curmode = MODE_MOD;
                 if (!strcmp("locked",optarg)) {
                     attr= ATTRB_LOCKED;
@@ -179,6 +200,9 @@ main(int argc, char *argv[])
                 return 0;
             }
             
+            if (comment!=NULL)
+                strcpy(regular->comment, comment);
+            
             if (attr!= -1){
                 
                 regular->entries[entry]->attr=attr;
@@ -192,15 +216,15 @@ main(int argc, char *argv[])
             }
             
             
-            if(newname!=NULL){
+            if(name!=NULL){
                 char *str;
                 
                 if (is_tokenized_vartype(model, regular->entries[entry]->type) &&
                     tifiles_calc_is_ti8x(model)){
-                    str = ticonv_varname_tokenize(model, newname, regular->entries[entry]->type);
+                    str = ticonv_varname_tokenize(model, name, regular->entries[entry]->type);
                 }
                 else{
-                    str = newname;
+                    str = name;
                 }
                 
                 if(strlen(str) > 8)
