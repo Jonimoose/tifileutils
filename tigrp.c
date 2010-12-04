@@ -40,6 +40,7 @@ main(int argc, char *argv[])
     static struct option long_options[] = {
         {"help", 0, 0, 'h'},
         {"list", required_argument, 0, 'l'},
+        {"create", required_argument, 0, 'c'},
         {"extract", required_argument, 0, 'x'},
         {"verbose", 0, &verbose_flag, 'v'},
         {0, 0, 0, 0}
@@ -47,7 +48,7 @@ main(int argc, char *argv[])
     char *ofile=NULL, *ifile=NULL;
     int option_index = 0;
 
-    while ((c = getopt_long(argc, argv, ":hVvl:x:e:", long_options, &option_index)) != -1) {
+    while ((c = getopt_long(argc, argv, ":hVvl:x:c:", long_options, &option_index)) != -1) {
     switch (c) {
         case 'V':
             printf("Insert Verison Text here\n");
@@ -60,6 +61,15 @@ main(int argc, char *argv[])
             if (curmode==MODE_NONE && optarg){
                 curmode = MODE_EX;
                 ifile=optarg;
+            }
+            else {
+                curmode = MODE_HELP;
+            }
+            break;
+        case 'c':
+            if (curmode==MODE_NONE && optarg){
+                curmode = MODE_CREATE;
+                ofile=optarg;
             }
             else {
                 curmode = MODE_HELP;
@@ -101,6 +111,40 @@ main(int argc, char *argv[])
             tifiles_untigroup_file(ifile, NULL);
         else
             fprintf(stderr, "invalid filetype");
+    }
+    
+    
+    
+    if (curmode==MODE_CREATE){
+        // //printf("%x [%s]\n",(void*)ifile,ifile);
+        char **ifiles = NULL;
+        int ret = 0;
+        int n = (argc - optind + 1);
+        
+        ifiles = (char **)malloc((n + 1) * sizeof(char *));
+        if (ifiles == NULL)
+            return 1;
+               
+        int i;
+        
+        for (i = 0; i < (n); i++) 
+        {
+            ifiles[i] = (char *)malloc(sizeof(char));
+            if (ifiles[i] == NULL)
+                return 1;
+            
+            ifiles[i] = argv[optind + i];
+            
+        }
+        ifiles[i] = NULL;
+        
+        // for (i = 0; i < (n - 1); i++)
+            // ifiles[i] = argv[optind+i];
+            // 
+        // ifiles[n]= '\0';
+        ret = tifiles_group_files(ifiles, ofile);
+        
+        return ret;
     }
    
     if (curmode==MODE_LS){
