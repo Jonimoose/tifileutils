@@ -200,7 +200,7 @@ main(int argc, char *argv[])
         } 
         else {
             fprintf(stderr, "No file specified.\n");
-            return 0
+            return 0;
         }
         
         // printf("%x [%s]\n",(void*)ifile,ifile);
