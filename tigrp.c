@@ -47,6 +47,7 @@ main(int argc, char *argv[])
     int curmode=MODE_NONE;
     char *ofile=NULL, *ifile=NULL;
     int option_index = 0;
+    int ret = 0;
 
     while ((c = getopt_long(argc, argv, ":hVvl:x:c:", long_options, &option_index)) != -1) {
     switch (c) {
@@ -111,40 +112,31 @@ main(int argc, char *argv[])
                 tifiles_ungroup_file(ifile, NULL);
             else if(tifiles_file_is_tigroup(ifile))
                 tifiles_untigroup_file(ifile, NULL);
-            else
+            else {
                 fprintf(stderr, "invalid filetype\n");
+                ret = 1;
+            }
         }
         else if (curmode==MODE_CREATE) {
             // //printf("%x [%s]\n",(void*)ifile,ifile);
             char **ifiles = NULL;
-            int ret = 0;
+            
             int n = (argc - optind + 1);
             
-            if (( ifiles = (char **)malloc((n + 1) * sizeof(char *))) == NULL)            if (ifiles == NULL)
-                return 1;
-                   
-            int i;
-            
-            for (i = 0; i < (n); i++) 
-            {
-                // ifiles[i] = (char *)malloc(sizeof(char *));
-                // if (ifiles[i] == NULL)
-                    // return 1;
+            if (( ifiles = (char **)malloc((n + 1) * sizeof(char *))) == NULL)
+                ret = 1;
+            else {
+                int i;
+                for (i = 0; i < (n); i++) 
+                {
+                    ifiles[i] = argv[optind + i];              
+                }
+                ifiles[i] = NULL;
                 
-                ifiles[i] = argv[optind + i];
-                
+                ret = tifiles_group_files(ifiles, ofile);
+                            
+                free(ifiles);
             }
-            ifiles[i] = NULL;
-            
-            ret = tifiles_group_files(ifiles, ofile);
-            
-            // for (i = 0; i < (n); i++) 
-            // {
-                // free(ifiles[i]);
-            // }
-            
-            free(ifiles);
-            return ret;
         }
         else if (curmode==MODE_LS) {
             //printf("%x [%s]\n",(void*)ifile,ifile);
@@ -152,11 +144,13 @@ main(int argc, char *argv[])
                 tifiles_file_display(ifile);
             else if(tifiles_file_is_tigroup(ifile))
                 tifiles_file_display_tigroup(ifile);
-            else
+            else {
                 fprintf(stderr, "invalid filetype\n");
+                ret =1;
+            }
         }
         
         tifiles_library_exit();
     }
-    return 0;
+    return ret;
 }
