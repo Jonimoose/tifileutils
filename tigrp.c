@@ -138,11 +138,6 @@ main(int argc, char *argv[])
         }
         ifiles[i] = NULL;
         
-        // for (i = 0; i < (n - 1); i++)
-            // ifiles[i] = argv[optind+i];
-            // 
-        // ifiles[n]= '\0';
-        ret = tifiles_group_files(ifiles, ofile);
         
         return ret;
     }
