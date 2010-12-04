@@ -189,10 +189,10 @@ main(int argc, char *argv[])
     }
       
     
-    
-    if (curmode==MODE_HELP || curmode==MODE_NONE) 
+    if (curmode==MODE_HELP || curmode==MODE_NONE) {
         printf("insert help text here\n");
-    
+        return 0;
+    }
     tifiles_library_init();
     
     if (curmode==MODE_MOD){
@@ -201,7 +201,7 @@ main(int argc, char *argv[])
         } 
         else {
             fprintf(stderr, "No file specified.\n");
-            return 0;
+            return 1;
         }
         
         // printf("%x [%s]\n",(void*)ifile,ifile);
@@ -211,7 +211,7 @@ main(int argc, char *argv[])
             tifiles_file_read_regular(ifile, regular);
             if (entry > regular->num_entries || entry <0) {
                 fprintf(stderr, "invalid entry specified\n");
-                return 0;
+                return 1;
             }
             
             if (comment!=NULL)
@@ -253,14 +253,13 @@ main(int argc, char *argv[])
             fprintf(stderr, "invalid filetype\n");
         
     }
-    
-    if (curmode==MODE_INFO){
+    else if (curmode==MODE_INFO) {
         if (optind++ <= argc) {
             ifile=argv[optind];
         } 
         else {
             fprintf(stderr, "No file specified.\n");
-            return 0;
+            return 1;
         }
                 
         // printf("%x [%s]\n",(void*)ifile,ifile);
