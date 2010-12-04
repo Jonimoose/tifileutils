@@ -99,61 +99,64 @@ main(int argc, char *argv[])
         }
     }
     
-    if (curmode==MODE_HELP || curmode==MODE_NONE) printf("insert help text here\n");
-    
-    tifiles_library_init();
-    
-    if (curmode==MODE_EX){
-        //printf("%x [%s]\n",(void*)ifile,ifile);
-        if (tifiles_file_is_group(ifile))
-            tifiles_ungroup_file(ifile, NULL);
-	    else if(tifiles_file_is_tigroup(ifile))
-            tifiles_untigroup_file(ifile, NULL);
-        else
-            fprintf(stderr, "invalid filetype\n");
+    if (curmode==MODE_HELP || curmode==MODE_NONE) {
+        printf("insert help text here\n");
     }
-    
-    
-    
-    if (curmode==MODE_CREATE){
-        // //printf("%x [%s]\n",(void*)ifile,ifile);
-        char **ifiles = NULL;
-        int ret = 0;
-        int n = (argc - optind + 1);
+    else {
+        tifiles_library_init();
         
-        ifiles = (char **)malloc((n + 1) * sizeof(char *));
-        if (ifiles == NULL)
-            return 1;
-               
-        int i;
-        
-        for (i = 0; i < (n); i++) 
-        {
-            ifiles[i] = (char *)malloc(sizeof(char));
-            if (ifiles[i] == NULL)
-                return 1;
-            
-            ifiles[i] = argv[optind + i];
-            
+        if (curmode==MODE_EX){
+            //printf("%x [%s]\n",(void*)ifile,ifile);
+            if (tifiles_file_is_group(ifile))
+                tifiles_ungroup_file(ifile, NULL);
+            else if(tifiles_file_is_tigroup(ifile))
+                tifiles_untigroup_file(ifile, NULL);
+            else
+                fprintf(stderr, "invalid filetype\n");
         }
-        ifiles[i] = NULL;
+        else if (curmode==MODE_CREATE) {
+            // //printf("%x [%s]\n",(void*)ifile,ifile);
+            char **ifiles = NULL;
+            int ret = 0;
+            int n = (argc - optind + 1);
+            
+            if (( ifiles = (char **)malloc((n + 1) * sizeof(char *))) == NULL)            if (ifiles == NULL)
+                return 1;
+                   
+            int i;
+            
+            for (i = 0; i < (n); i++) 
+            {
+                // ifiles[i] = (char *)malloc(sizeof(char *));
+                // if (ifiles[i] == NULL)
+                    // return 1;
+                
+                ifiles[i] = argv[optind + i];
+                
+            }
+            ifiles[i] = NULL;
+            
+            ret = tifiles_group_files(ifiles, ofile);
+            
+            // for (i = 0; i < (n); i++) 
+            // {
+                // free(ifiles[i]);
+            // }
+            
+            free(ifiles);
+            return ret;
+        }
+        else if (curmode==MODE_LS) {
+            //printf("%x [%s]\n",(void*)ifile,ifile);
+            if (tifiles_file_is_regular(ifile))
+                tifiles_file_display(ifile);
+            else if(tifiles_file_is_tigroup(ifile))
+                tifiles_file_display_tigroup(ifile);
+            else
+                fprintf(stderr, "invalid filetype\n");
+        }
         
-        ret = tifiles_group_files(ifiles, ofile);
-        
-        return ret;
+        tifiles_library_exit();
     }
-   
-    if (curmode==MODE_LS){
-        //printf("%x [%s]\n",(void*)ifile,ifile);
-        if (tifiles_file_is_regular(ifile))
-            tifiles_file_display(ifile);
-	    else if(tifiles_file_is_tigroup(ifile))
-            tifiles_file_display_tigroup(ifile);
-        else
-            fprintf(stderr, "invalid filetype\n");
-    }
-    
-    tifiles_library_exit();
-
     return 0;
 }
