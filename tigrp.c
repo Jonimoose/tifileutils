@@ -31,13 +31,7 @@ static int verbose_flag;
 
 enum modes {MODE_NONE, MODE_HELP, MODE_EX, MODE_LS, MODE_CREATE, MODE_ADD, MODE_DEL};
 
-
-int
-main(int argc, char *argv[])
-{
-    char c;
-    int curmode=MODE_NONE;
-    static struct option long_options[] = {
+static const struct option long_options[] = {
         {"help", 0, 0, 'h'},
         {"list", required_argument, 0, 'l'},
         {"create", required_argument, 0, 'c'},
@@ -45,6 +39,12 @@ main(int argc, char *argv[])
         {"verbose", 0, &verbose_flag, 'v'},
         {0, 0, 0, 0}
     };
+
+int
+main(int argc, char *argv[])
+{
+    char c;
+    int curmode=MODE_NONE;
     char *ofile=NULL, *ifile=NULL;
     int option_index = 0;
 

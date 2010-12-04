@@ -31,6 +31,20 @@ static int verbose_flag;
 
 enum modes {MODE_NONE, MODE_INFO, MODE_MOD, MODE_HELP};
 
+static const struct option long_options[] = {
+        {"help", 0, 0, 'h'},
+        {"version", 0, 0, 'V'},
+        {"entry", required_argument, 0, 'e'},
+        {"attr", required_argument, 0, 'a'},
+        {"rename", required_argument, 0, 'r'},
+        {"folder", required_argument, 0, 'f'},
+        {"info", 0, 0, 'i'},
+        {"comment", required_argument, 0, 'C'},
+        {"type", required_argument, 0, 't'},
+        {"verbose", 0, &verbose_flag, 'v'},
+        {0, 0, 0, 0}
+    };
+
 /* Check if variable name should be tokenized.
    ticonv_varname_tokenize() should probably be more selective... */
 /* Taken from Ben Moody's Ti Tools */
@@ -64,19 +78,6 @@ main(int argc, char *argv[])
 {
     char c;
     int curmode=MODE_NONE;
-    static struct option long_options[] = {
-        {"help", 0, 0, 'h'},
-        {"version", 0, 0, 'V'},
-        {"entry", required_argument, 0, 'e'},
-        {"attr", required_argument, 0, 'a'},
-        {"rename", required_argument, 0, 'r'},
-        {"folder", required_argument, 0, 'f'},
-        {"info", 0, 0, 'i'},
-        {"comment", required_argument, 0, 'C'},
-        {"type", required_argument, 0, 't'},
-        {"verbose", 0, &verbose_flag, 'v'},
-        {0, 0, 0, 0}
-    };
     char *ofile=NULL, *ifile=NULL;
     int option_index = 0;
     int entry=0;
