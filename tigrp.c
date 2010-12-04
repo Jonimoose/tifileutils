@@ -138,6 +138,7 @@ main(int argc, char *argv[])
         }
         ifiles[i] = NULL;
         
+        ret = tifiles_group_files(ifiles, ofile);
         
         return ret;
     }
