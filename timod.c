@@ -71,9 +71,8 @@ main(int argc, char *argv[])
         {"attr", required_argument, 0, 'a'},
         {"rename", required_argument, 0, 'r'},
         {"folder", required_argument, 0, 'f'},
-        {"info", required_argument, 0, 'i'},
+        {"info", 0, 0, 'i'},
         {"comment", required_argument, 0, 'C'},
-        {"create", required_argument, 0, 'c'},
         {"type", required_argument, 0, 't'},
         {"verbose", 0, &verbose_flag, 'v'},
         {0, 0, 0, 0}
@@ -85,7 +84,7 @@ main(int argc, char *argv[])
     char *name=NULL, *foldname=NULL, *comment=NULL;
     FileContent *regular;
 
-    while ((c = getopt_long(argc, argv, ":hVvi:f:c:a:r:e:n:t:", long_options, &option_index)) != -1) {
+    while ((c = getopt_long(argc, argv, ":hVvi:f:C:a:r:e:n:t:", long_options, &option_index)) != -1) {
     switch (c) {
         case 'V':
             printf("Insert Verison Text here\n");
@@ -106,6 +105,16 @@ main(int argc, char *argv[])
             else {
                 curmode = MODE_HELP;
             }
+            break;
+        case 't':
+            fprintf(stderr,"Changing of entry type is not yet implemented.\n");
+            // if (curmode!=MODE_HELP && optarg){
+                // curmode = MODE_MOD;
+                // name=optarg;
+            // }
+            // else {
+                // curmode = MODE_HELP;
+            // }
             break;
         case 'n':
             if (curmode!=MODE_HELP && optarg){
@@ -135,7 +144,7 @@ main(int argc, char *argv[])
             }
             break;
         case 'a':
-            if (curmode!=MODE_NONE && optarg){
+            if (curmode!=MODE_HELP && optarg){
                 curmode = MODE_MOD;
                 if (!strcmp("locked",optarg)) {
                     attr= ATTRB_LOCKED;
@@ -158,7 +167,6 @@ main(int argc, char *argv[])
         case 'i':
             if (curmode==MODE_NONE && optarg){
                 curmode = MODE_INFO;
-                ifile=optarg;
             }
             else {
                 curmode = MODE_HELP;
@@ -178,10 +186,7 @@ main(int argc, char *argv[])
             break;
         }
     }
-        
-    if (curmode==MODE_MOD)
-        ifile=argv[optind++];
-        
+      
     
     
     if (curmode==MODE_HELP || curmode==MODE_NONE) 
@@ -190,13 +195,21 @@ main(int argc, char *argv[])
     tifiles_library_init();
     
     if (curmode==MODE_MOD){
-        //printf("%x [%s]\n",(void*)ifile,ifile);
+        if (optind++ <= argc) {
+            ifile=argv[optind];
+        } 
+        else {
+            fprintf(stderr, "No file specified.\n");
+            return 0
+        }
+        
+        // printf("%x [%s]\n",(void*)ifile,ifile);
         if (tifiles_file_is_regular(ifile)){
             CalcModel model = tifiles_file_get_model(ifile);
             regular = tifiles_content_create_regular(model);
             tifiles_file_read_regular(ifile, regular);
             if (entry > regular->num_entries || entry <0) {
-                fprintf(stderr, "invalid entry specified");
+                fprintf(stderr, "invalid entry specified\n");
                 return 0;
             }
             
@@ -236,16 +249,24 @@ main(int argc, char *argv[])
                 tifiles_file_display(ifile);
             tifiles_file_write_regular(ifile, regular, NULL);
         }else
-            fprintf(stderr, "invalid filetype");
+            fprintf(stderr, "invalid filetype\n");
         
     }
     
     if (curmode==MODE_INFO){
-        //printf("%x [%s]\n",(void*)ifile,ifile);
+        if (optind++ <= argc) {
+            ifile=argv[optind];
+        } 
+        else {
+            fprintf(stderr, "No file specified.\n");
+            return 0
+        }
+                
+        // printf("%x [%s]\n",(void*)ifile,ifile);
         if (tifiles_file_is_regular(ifile))
             tifiles_file_display(ifile);
         else
-            fprintf(stderr, "invalid filetype");
+            fprintf(stderr, "invalid filetype\n");
     }
     
     tifiles_library_exit();
