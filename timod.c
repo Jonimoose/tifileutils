@@ -77,12 +77,12 @@ int
 main(int argc, char *argv[])
 {
     char c;
-    int curmode=MODE_NONE;
-    char *ofile=NULL, *ifile=NULL;
+    int curmode = MODE_NONE;
+    char *ofile = NULL, *ifile = NULL;
     int option_index = 0;
-    int entry=0;
-    int attr=-1;
-    char *name=NULL, *foldname=NULL, *comment=NULL;
+    int entry = 0;
+    int attr = -1;
+    char *name = NULL, *foldname = NULL, *comment = NULL;
     FileContent *regular;
 
     while ((c = getopt_long(argc, argv, ":hVvi:f:C:a:r:e:n:t:", long_options, &option_index)) != -1) {
@@ -92,16 +92,16 @@ main(int argc, char *argv[])
             break;
         default:
         case 'h':
-            curmode=MODE_HELP;
+            curmode = MODE_HELP;
             break;
         case 'e':
             if (optarg) 
                 entry= (int)strtol(optarg, NULL, 10);
             break;
         case 'r':
-            if (curmode!=MODE_HELP && optarg){
+            if (curmode != MODE_HELP && optarg){
                 curmode = MODE_MOD;
-                name=optarg;
+                name = optarg;
             }
             else {
                 curmode = MODE_HELP;
@@ -109,49 +109,49 @@ main(int argc, char *argv[])
             break;
         case 't':
             fprintf(stderr,"Changing of entry type is not yet implemented.\n");
-            // if (curmode!=MODE_HELP && optarg){
+            // if (curmode != MODE_HELP && optarg){
                 // curmode = MODE_MOD;
-                // name=optarg;
+                // name = optarg;
             // }
             // else {
                 // curmode = MODE_HELP;
             // }
             break;
         case 'n':
-            if (curmode!=MODE_HELP && optarg){
+            if (curmode != MODE_HELP && optarg){
                 curmode = MODE_MOD;
-                name=optarg;
+                name = optarg;
             }
             else {
                 curmode = MODE_HELP;
             }
             break;
         case 'f':
-            if (curmode!=MODE_HELP && optarg){
+            if (curmode != MODE_HELP && optarg){
                 curmode = MODE_MOD;
-                foldname=optarg;
+                foldname = optarg;
             }
             else {
                 curmode = MODE_HELP;
             }
             break;
         case 'C':
-            if (curmode!=MODE_HELP && optarg){
+            if (curmode != MODE_HELP && optarg){
                 curmode = MODE_MOD;
-                comment=optarg;
+                comment = optarg;
             }
             else {
                 curmode = MODE_HELP;
             }
             break;
         case 'a':
-            if (curmode!=MODE_HELP && optarg){
+            if (curmode != MODE_HELP && optarg){
                 curmode = MODE_MOD;
                 if (!strcmp("locked",optarg)) {
-                    attr= ATTRB_LOCKED;
+                    attr = ATTRB_LOCKED;
                 }
                 else if (!strcmp("archived",optarg)){
-                    attr= ATTRB_ARCHIVED;
+                    attr = ATTRB_ARCHIVED;
                 }
                 else if (!strcmp("none",optarg)) {
                     attr = ATTRB_NONE;
@@ -162,11 +162,11 @@ main(int argc, char *argv[])
                 }
             }
             else { 
-                curmode=MODE_HELP;
+                curmode = MODE_HELP;
             }
             break;
         case 'i':
-            if (curmode==MODE_NONE && optarg){
+            if (curmode == MODE_NONE && optarg){
                 curmode = MODE_INFO;
             }
             else {
@@ -181,7 +181,7 @@ main(int argc, char *argv[])
         case '?':
             fprintf(stderr,
                     "Unrecognised option: -%c\n", optopt);
-            curmode=MODE_HELP;
+            curmode = MODE_HELP;
         case 'v':
             verbose_flag++;
             break;
@@ -189,13 +189,13 @@ main(int argc, char *argv[])
     }
       
     
-    if (curmode==MODE_HELP || curmode==MODE_NONE) {
+    if (curmode == MODE_HELP || curmode == MODE_NONE) {
         printf("insert help text here\n");
         return 0;
     }
     tifiles_library_init();
     
-    if (curmode==MODE_MOD){
+    if (curmode == MODE_MOD){
         if (optind++ <= argc) {
             ifile=argv[optind];
         } 
@@ -230,7 +230,7 @@ main(int argc, char *argv[])
             }
             
             
-            if(name!=NULL){
+            if(name != NULL){
                 char *str;
                 
                 if (is_tokenized_vartype(model, regular->entries[entry]->type) &&
@@ -253,9 +253,9 @@ main(int argc, char *argv[])
             fprintf(stderr, "invalid filetype\n");
         
     }
-    else if (curmode==MODE_INFO) {
+    else if (curmode == MODE_INFO) {
         if (optind++ <= argc) {
-            ifile=argv[optind];
+            ifile = argv[optind];
         } 
         else {
             fprintf(stderr, "No file specified.\n");
