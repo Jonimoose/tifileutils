@@ -110,7 +110,7 @@ main(int argc, char *argv[])
 	    else if(tifiles_file_is_tigroup(ifile))
             tifiles_untigroup_file(ifile, NULL);
         else
-            fprintf(stderr, "invalid filetype");
+            fprintf(stderr, "invalid filetype\n");
     }
     
     
@@ -149,7 +149,7 @@ main(int argc, char *argv[])
 	    else if(tifiles_file_is_tigroup(ifile))
             tifiles_file_display_tigroup(ifile);
         else
-            fprintf(stderr, "invalid filetype");
+            fprintf(stderr, "invalid filetype\n");
     }
     
     tifiles_library_exit();
