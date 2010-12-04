@@ -1,9 +1,9 @@
 CC=gcc
 CFLAGS= -c -Wall -I/usr/include/tilp2
 LDFLAGS= -ltifiles2
-SOURCES=tigroup.c timod.c
+SOURCES=tigrp.c timod.c
 OBJECTS=$(SOURCES:.c=.o)
-programs = tigroup \
+programs = tigrp \
 	   timod
 EXECUTABLE=$(SOURCES:.c=)
 
