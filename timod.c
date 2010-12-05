@@ -211,62 +211,66 @@ main(int argc, char *argv[])
             tifiles_file_read_regular(ifile, regular);
             if (entry > regular->num_entries || entry <0) {
                 fprintf(stderr, "invalid entry specified\n");
-                return 1;
+                entry = 0;
             }
-            
-            if (comment!=NULL)
-                strcpy(regular->comment, comment);
-            
-            if (attr!= -1){
+            else {
+                if (comment!=NULL)
+                    strcpy(regular->comment, comment);
                 
-                regular->entries[entry]->attr=attr;
-            }
-            
-            if (foldname!=NULL && tifiles_calc_is_ti9x(model)){
-                if(strlen(foldname) > 8)
-                    foldname[8] = '\0';
-                
-                strcpy(regular->entries[entry]->folder, foldname);
-            }
-            
-            
-            if(name != NULL){
-                char *str;
-                
-                if (is_tokenized_vartype(model, regular->entries[entry]->type) &&
-                    tifiles_calc_is_ti8x(model)){
-                    str = ticonv_varname_tokenize(model, name, regular->entries[entry]->type);
-                }
-                else{
-                    str = name;
+                if (attr!= -1){
+                    
+                    regular->entries[entry]->attr=attr;
                 }
                 
-                if(strlen(str) > 8)
-                    str[8] = '\0';
+                if (foldname!=NULL && tifiles_calc_is_ti9x(model)){
+                    if(strlen(foldname) > 8)
+                        foldname[8] = '\0';
+                    
+                    strcpy(regular->entries[entry]->folder, foldname);
+                }
                 
-                strcpy(regular->entries[entry]->name, str);
+                
+                if(name != NULL){
+                    char *str;
+                    
+                    if (is_tokenized_vartype(model, regular->entries[entry]->type) &&
+                        tifiles_calc_is_ti8x(model)){
+                        str = ticonv_varname_tokenize(model, name, regular->entries[entry]->type);
+                    }
+                    else{
+                        str = name;
+                    }
+                    
+                    if(strlen(str) > 8)
+                        str[8] = '\0';
+                    
+                    strcpy(regular->entries[entry]->name, str);
+                }
+                if (verbose_flag)
+                    tifiles_file_display(ifile);
+                tifiles_file_write_regular(ifile, regular, NULL);
             }
-            if (verbose_flag)
-                tifiles_file_display(ifile);
-            tifiles_file_write_regular(ifile, regular, NULL);
-        }else
+        }
+        else {
             fprintf(stderr, "invalid filetype\n");
-        
+            ret = 1;
+        }
     }
     else if (curmode == MODE_INFO) {
         if (optind++ <= argc) {
             ifile = argv[optind];
+            // printf("%x [%s]\n",(void*)ifile,ifile);
+            if (tifiles_file_is_regular(ifile))
+                tifiles_file_display(ifile);
+            else {
+                fprintf(stderr, "invalid filetype\n");
+                ret = 1;
+            }
         } 
         else {
             fprintf(stderr, "No file specified.\n");
-            return 1;
+            ret = 1;
         }
-                
-        // printf("%x [%s]\n",(void*)ifile,ifile);
-        if (tifiles_file_is_regular(ifile))
-            tifiles_file_display(ifile);
-        else
-            fprintf(stderr, "invalid filetype\n");
     }
     
     tifiles_library_exit();
