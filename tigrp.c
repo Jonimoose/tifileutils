@@ -52,7 +52,7 @@ main(int argc, char *argv[])
     while ((c = getopt_long(argc, argv, ":hVvl:x:c:", long_options, &option_index)) != -1) {
     switch (c) {
         case 'V':
-            printf("Insert Verison Text here\n");
+            printf("Insert Version Text here\n");
             break;
         default:
         case 'h':
@@ -92,7 +92,7 @@ main(int argc, char *argv[])
             break;
         case '?':
             fprintf(stderr,
-                    "Unrecognised option: -%c\n", optopt);
+                    "Unrecognized option: -%c\n", optopt);
             curmode=MODE_HELP;
         case 'v':
             verbose_flag++;
