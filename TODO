@@ -1,0 +1,6 @@
+To Do:
+------
+
+1) Help texts, may switch to different arg parser to make this easier.
+
+2) More error checking on the input so users know why things didn't work.
