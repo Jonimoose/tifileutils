@@ -32,7 +32,7 @@ static char *name = NULL;
 static char *folder = NULL;
 static char *comment = NULL;
 static char *attrs = NULL;
-static char *input_file = NULL;
+static char **input_files = NULL;
 static int entry = 0;
 static gboolean verbose = FALSE;
 static gboolean showversion = FALSE;
@@ -55,7 +55,7 @@ static const GOptionEntry options[] =
      "Show details of link operations", NULL },
    { "version", 0, 0, G_OPTION_ARG_NONE, &showversion,
      "Display program version info", NULL },
-   { G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME, &input_file,
+   { G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &input_files,
      NULL, "FILE" },
    { 0, 0, 0, 0, 0, 0, 0 }};
 
@@ -156,8 +156,8 @@ main(int argc, char *argv[])
     if (!info && (attr || comment || folder || name)) {
         
         // printf("%x [%s]\n",(void*)ifile,ifile);
-        ifile = input_file;
-        if (input_file && tifiles_file_is_regular(ifile)){
+        ifile = input_files[0];
+        if (input_files[0] && tifiles_file_is_regular(ifile)){
             CalcModel model = tifiles_file_get_model(ifile);
             regular = tifiles_content_create_regular(model);
             tifiles_file_read_regular(ifile, regular);
@@ -209,9 +209,9 @@ main(int argc, char *argv[])
         }
     }
     else if (info) {
-		ifile = input_file;
+		ifile = input_files[0];
 		// printf("%x [%s]\n",(void*)ifile,ifile);
-		if ( input_file && tifiles_file_is_regular(ifile))
+		if ( input_files[0] && tifiles_file_is_regular(ifile))
 			tifiles_file_display(ifile);
 		else {
 			fprintf(stderr, "Invalid or missing input file");
