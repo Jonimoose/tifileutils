@@ -21,29 +21,54 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <getopt.h>
+#include <glib.h>
+#include <locale.h>
 #include <string.h>
 #include <tifiles.h>
 #include <ticonv.h>
 
-/* Flag set by ‘--verbose’. */
-static int verbose_flag;
 
-enum modes {MODE_NONE, MODE_INFO, MODE_MOD, MODE_HELP};
+static char *name = NULL;
+static char *folder = NULL;
+static char *comment = NULL;
+static char *attrs = NULL;
+static char *input_file = NULL;
+static int entry = 0;
+static gboolean verbose = FALSE;
+static gboolean showversion = FALSE;
+static gboolean info = FALSE;
 
-static const struct option long_options[] = {
-        {"help", 0, 0, 'h'},
-        {"version", 0, 0, 'V'},
-        {"entry", required_argument, 0, 'e'},
-        {"attr", required_argument, 0, 'a'},
-        {"rename", required_argument, 0, 'r'},
-        {"folder", required_argument, 0, 'f'},
-        {"info", 0, 0, 'i'},
-        {"comment", required_argument, 0, 'C'},
-        {"type", required_argument, 0, 't'},
-        {"verbose", 0, &verbose_flag, 'v'},
-        {0, 0, 0, 0}
-    };
+static const GOptionEntry options[] =
+  {{ "entry", 'e', 0, G_OPTION_ARG_STRING, &entry,
+     "File entry number N (indexed from 0)", "N" },
+   { "attr", 'm', 0, G_OPTION_ARG_STRING, &attrs,
+     "Set Attribute", "ATTR" },
+   { "comment", 'C', 0, G_OPTION_ARG_STRING, &comment,
+     "Set file comment", "COMMENT" },
+   { "NAME", 'C', 0, G_OPTION_ARG_STRING, &name,
+     "Set entry name", "NAME" },
+   { "folder", 'C', 0, G_OPTION_ARG_STRING, &folder,
+     "Set entry folder (86k calcs only otherwise ignored)", "FOLDER" },
+   { "info", 'i', 0, G_OPTION_ARG_NONE, &info,
+     "Display file contents and info", NULL },  
+   { "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose,
+     "Show details of link operations", NULL },
+   { "version", 0, 0, G_OPTION_ARG_NONE, &showversion,
+     "Display program version info", NULL },
+   { G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME, &input_file,
+     NULL, "FILE" },
+   { 0, 0, 0, 0, 0, 0, 0 }};
+
+/* Print out command-line help text, and exit */
+static void print_usage(GOptionContext *ctx)
+{
+	char *usage = g_option_context_get_help(ctx, TRUE, NULL);
+	g_printerr("%s", usage);
+	g_free(usage);
+	g_option_context_free(ctx);
+	exit(1);
+}
+
 
 /* Check if variable name should be tokenized.
    ticonv_varname_tokenize() should probably be more selective... */
@@ -76,137 +101,63 @@ static int is_tokenized_vartype(CalcModel model, int type)
 int
 main(int argc, char *argv[])
 {
-    char c;
-    int curmode = MODE_NONE;
-    char *ofile = NULL, *ifile = NULL;
-    int option_index = 0;
-    int entry = 0;
+    char *ifile = NULL;
     int attr = -1;
     int ret = 0;
     char *name = NULL, *foldname = NULL, *comment = NULL;
     FileContent *regular;
-
-    while ((c = getopt_long(argc, argv, ":hVvi:f:C:a:r:e:n:t:", long_options, &option_index)) != -1) {
-    switch (c) {
-        case 'V':
-            printf("Insert Version Text here\n");
-            break;
-        default:
-        case 'h':
-            curmode = MODE_HELP;
-            break;
-        case 'e':
-            if (optarg) 
-                entry= (int)strtol(optarg, NULL, 10);
-            break;
-        case 'r':
-            if (curmode != MODE_HELP && optarg){
-                curmode = MODE_MOD;
-                name = optarg;
-            }
-            else {
-                curmode = MODE_HELP;
-            }
-            break;
-        case 't':
-            fprintf(stderr,"Changing of entry type is not yet implemented.\n");
-            // if (curmode != MODE_HELP && optarg){
-                // curmode = MODE_MOD;
-                // name = optarg;
-            // }
-            // else {
-                // curmode = MODE_HELP;
-            // }
-            break;
-        case 'n':
-            if (curmode != MODE_HELP && optarg){
-                curmode = MODE_MOD;
-                name = optarg;
-            }
-            else {
-                curmode = MODE_HELP;
-            }
-            break;
-        case 'f':
-            if (curmode != MODE_HELP && optarg){
-                curmode = MODE_MOD;
-                foldname = optarg;
-            }
-            else {
-                curmode = MODE_HELP;
-            }
-            break;
-        case 'C':
-            if (curmode != MODE_HELP && optarg){
-                curmode = MODE_MOD;
-                comment = optarg;
-            }
-            else {
-                curmode = MODE_HELP;
-            }
-            break;
-        case 'a':
-            if (curmode != MODE_HELP && optarg){
-                curmode = MODE_MOD;
-                if (!strcmp("locked",optarg)) {
-                    attr = ATTRB_LOCKED;
-                }
-                else if (!strcmp("archived",optarg)){
-                    attr = ATTRB_ARCHIVED;
-                }
-                else if (!strcmp("none",optarg)) {
-                    attr = ATTRB_NONE;
-                }
-                else {
-                    curmode = MODE_HELP;
-                    fprintf(stderr,"Valid Attributes are locked, archived and none.\n");
-                }
-            }
-            else { 
-                curmode = MODE_HELP;
-            }
-            break;
-        case 'i':
-            if (curmode == MODE_NONE && optarg){
-                curmode = MODE_INFO;
-            }
-            else {
-                curmode = MODE_HELP;
-            };
-            break;
-        case ':':       /* -f or -o without operand */
-            fprintf(stderr,
-                    "Option -%c requires an operand\n", optopt);
-            curmode=MODE_HELP;
-            break;
-        case '?':
-            fprintf(stderr,
-                    "Unrecognized option: -%c\n", optopt);
-            curmode = MODE_HELP;
-        case 'v':
-            verbose_flag++;
-            break;
-        }
-    }
-      
+    GError *err = NULL;
+    GOptionContext *ctx;
     
-    if (curmode == MODE_HELP || curmode == MODE_NONE) {
-        printf("insert help text here\n");
-        return 0;
-    }
+    setlocale(LC_ALL, "");
+	
+	ctx = g_option_context_new ("");
+	g_option_context_add_main_entries (ctx, options, NULL);
+
+      
+    if (!g_option_context_parse(ctx, &argc, &argv, &err)) {
+		g_printerr("%s: %s\n", g_get_prgname(), err->message);
+		g_error_free(err);
+		print_usage(ctx);
+	}
+    
+    if (showversion) {
+	    g_print("%s (%s)\n"
+		    "Copyright (C) 2010 Jon Sturm\n"
+		    "This program is free software. "
+		    " There is NO WARRANTY of any kind.\n"
+		    "Report bugs to %s.\n",
+			g_get_prgname(), "Ti File Utils", "jonimoose@gmail.com");
+		exit(0);
+	}
+    
+    /* check for unparsed options/filenames */
+	if (argc != 1)
+		print_usage(ctx);
+    
+    if (attrs){
+		if (!strcmp("locked",attrs)) {
+			attr = ATTRB_LOCKED;
+		}
+		else if (!strcmp("archived",attrs)){
+			attr = ATTRB_ARCHIVED;
+		}
+		else if (!strcmp("none",attrs)) {
+			attr = ATTRB_NONE;
+		}
+		else {
+			fprintf(stderr,"Valid Attributes are locked, archived and none.\n");
+			
+		}
+	}
+    
     tifiles_library_init();
     
-    if (curmode == MODE_MOD){
-        if (optind++ <= argc) {
-            ifile=argv[optind];
-        } 
-        else {
-            fprintf(stderr, "No file specified.\n");
-            return 1;
-        }
+    if (!info && (attr || comment || folder || name)) {
         
         // printf("%x [%s]\n",(void*)ifile,ifile);
-        if (tifiles_file_is_regular(ifile)){
+        ifile = input_file;
+        if (input_file && tifiles_file_is_regular(ifile)){
             CalcModel model = tifiles_file_get_model(ifile);
             regular = tifiles_content_create_regular(model);
             tifiles_file_read_regular(ifile, regular);
@@ -247,34 +198,29 @@ main(int argc, char *argv[])
                     
                     strcpy(regular->entries[entry]->name, str);
                 }
-                if (verbose_flag)
+                if (verbose)
                     tifiles_file_display(ifile);
                 tifiles_file_write_regular(ifile, regular, NULL);
             }
         }
         else {
-            fprintf(stderr, "invalid filetype\n");
+            fprintf(stderr, "Invalid or missing input file\n");
             ret = 1;
         }
     }
-    else if (curmode == MODE_INFO) {
-        if (optind++ <= argc) {
-            ifile = argv[optind];
-            // printf("%x [%s]\n",(void*)ifile,ifile);
-            if (tifiles_file_is_regular(ifile))
-                tifiles_file_display(ifile);
-            else {
-                fprintf(stderr, "invalid filetype\n");
-                ret = 1;
-            }
-        } 
-        else {
-            fprintf(stderr, "No file specified.\n");
-            ret = 1;
-        }
-    }
+    else if (info) {
+		ifile = input_file;
+		// printf("%x [%s]\n",(void*)ifile,ifile);
+		if ( input_file && tifiles_file_is_regular(ifile))
+			tifiles_file_display(ifile);
+		else {
+			fprintf(stderr, "Invalid or missing input file");
+			ret = 1;
+		}
+    } 
+    
     
     tifiles_library_exit();
 
-    return 0;
+    return ret;
 }
