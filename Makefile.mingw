@@ -1,0 +1,21 @@
+CC=gcc
+CFLAGS= -c -O2 -Wall -I/z/Projects/tifileutils/tilp2  '-I/c/Program Files (x86)/GTK2-Runtime/include/glib-2.0'
+LDFLAGS= '-L/c/Program Files (x86)/Common Files/LPG Shared/libs' '-L/c/Program Files (x86)/GTK2-Runtime/bin' -ltifiles2-7 -lglib-2.0-0
+SOURCES=tigrp.c timod.c
+OBJECTS=$(SOURCES:.c=.o)
+programs = tigrp \
+	timod
+EXECUTABLE=$(SOURCES:.c=)
+
+all: $(programs)
+
+clean:
+	rm $(programs:=.exe)
+	rm  $(OBJECTS)
+	
+$(programs): $(OBJECTS) 
+	$(CC) $(LDFLAGS) $@.o -o $@
+
+.c.o:
+	$(CC) $(CFLAGS) $< -o $@
+
