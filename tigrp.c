@@ -21,136 +21,127 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <getopt.h>
+#include <glib.h>
+#include <locale.h>
 #include <string.h>
 #include <tifiles.h>
 #include <ticonv.h>
 
-/* Flag set by ‘--verbose’. */
-static int verbose_flag;
+static gboolean verbose = FALSE;
+static gboolean showversion = FALSE;
+static char *list = FALSE;
+static char **input_files = NULL;
+static char *extract = NULL;
+static char *create = NULL;
 
-enum modes {MODE_NONE, MODE_HELP, MODE_EX, MODE_LS, MODE_CREATE, MODE_ADD, MODE_DEL};
+static const GOptionEntry options[] =
+  {{ "extract", 'x', 0, G_OPTION_ARG_STRING, &extract,
+     "Extract contents from FILE", "FILE" },
+   { "list", 'l', 0, G_OPTION_ARG_STRING, &list,
+     "List FILE contents", "FILE" },
+   { "create", 'c', 0, G_OPTION_ARG_STRING, &create,
+     "Create new group FILE", "FILE" }, 
+   { "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose,
+     "Show details of link operations", NULL },
+   { "version", 0, 0, G_OPTION_ARG_NONE, &showversion,
+     "Display program version info", NULL },
+   { G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &input_files,
+     NULL, "[FILES]" },
+   { 0, 0, 0, 0, 0, 0, 0 }};
 
-static const struct option long_options[] = {
-        {"help", 0, 0, 'h'},
-        {"list", required_argument, 0, 'l'},
-        {"create", required_argument, 0, 'c'},
-        {"extract", required_argument, 0, 'x'},
-        {"verbose", 0, &verbose_flag, 'v'},
-        {0, 0, 0, 0}
-    };
+static void print_usage(GOptionContext *ctx)
+{
+	char *usage = g_option_context_get_help(ctx, TRUE, NULL);
+	g_printerr("%s", usage);
+	g_free(usage);
+	g_option_context_free(ctx);
+	exit(1);
+}
 
 int
 main(int argc, char *argv[])
 {
-    char c;
-    int curmode=MODE_NONE;
-    char *ofile=NULL, *ifile=NULL;
-    int option_index = 0;
+    char *ifile=NULL;
     int ret = 0;
 
-    while ((c = getopt_long(argc, argv, ":hVvl:x:c:", long_options, &option_index)) != -1) {
-    switch (c) {
-        case 'V':
-            printf("Insert Version Text here\n");
-            break;
-        default:
-        case 'h':
-            curmode=MODE_NONE;
-            break;
-        case 'x':
-            if (curmode==MODE_NONE && optarg){
-                curmode = MODE_EX;
-                ifile=optarg;
-            }
-            else {
-                curmode = MODE_HELP;
-            }
-            break;
-        case 'c':
-            if (curmode==MODE_NONE && optarg){
-                curmode = MODE_CREATE;
-                ofile=optarg;
-            }
-            else {
-                curmode = MODE_HELP;
-            }
-            break;
-        case 'l':
-            if (curmode==MODE_NONE && optarg){
-                curmode = MODE_LS;
-                ifile=optarg;
-            }
-            else {
-                curmode = MODE_HELP;
-            };
-            break;
-        case ':':       /* -f or -o without operand */
-            fprintf(stderr,
-                    "Option -%c requires an operand\n", optopt);
-            curmode=MODE_HELP;
-            break;
-        case '?':
-            fprintf(stderr,
-                    "Unrecognized option: -%c\n", optopt);
-            curmode=MODE_HELP;
-        case 'v':
-            verbose_flag++;
-            break;
-        }
-    }
+	GError *err = NULL;
+    GOptionContext *ctx;
     
-    if (curmode==MODE_HELP || curmode==MODE_NONE) {
-        printf("insert help text here\n");
-    }
-    else {
-        tifiles_library_init();
+    setlocale(LC_ALL, "");
+	
+	ctx = g_option_context_new ("");
+	g_option_context_add_main_entries (ctx, options, NULL);
+
+      
+    if (!g_option_context_parse(ctx, &argc, &argv, &err)) {
+		g_printerr("%s: %s\n", g_get_prgname(), err->message);
+		g_error_free(err);
+		print_usage(ctx);
+	}
+    
+    if (showversion) {
+	    g_print("%s (%s)\n"
+		    "Copyright (C) 2010 Jon Sturm\n"
+		    "This program is free software. "
+		    " There is NO WARRANTY of any kind.\n"
+		    "Report bugs to %s.\n",
+			g_get_prgname(), "Ti File Utils", "jonimoose@gmail.com");
+		exit(0);
+	}
+    
+    /* check for unparsed options/filenames */
+	if (argc != 1)
+		print_usage(ctx);
+    
+	tifiles_library_init();
+	
+	if (extract){
+		ifile = extract;
+		//printf("%x [%s]\n",(void*)ifile,ifile);
+		if (tifiles_file_is_group(ifile))
+			tifiles_ungroup_file(ifile, NULL);
+		else if(tifiles_file_is_tigroup(ifile))
+			tifiles_untigroup_file(ifile, NULL);
+		else {
+			fprintf(stderr, "Invalid or missing input file.\n");
+			ret = 1;
+		}
+	}
+	else if (create) {
+		// //printf("%x [%s]\n",(void*)ifile,ifile);
+		//char **ifiles = NULL;
+		//
+		//int n = (argc - optind + 1);
+		//
+		//if (( ifiles = (char **)malloc((n + 1) * sizeof(char *))) == NULL)
+			//ret = 1;
+		//else {
+			//int i;
+			//for (i = 0; i < (n); i++) 
+			//{
+				//ifiles[i] = argv[optind + i];              
+			//}
+			//ifiles[i] = NULL;
+			
+			ret = tifiles_group_files(input_files, create);
+						
+			//free(ifiles);
+		// }
+	}
+	else if (list) {
+	    ifile = list;
+	    //printf("%x [%s]\n",(void*)ifile,ifile);
+	    if (tifiles_file_is_regular(ifile))
+		    tifiles_file_display(ifile);
+	    else if(tifiles_file_is_tigroup(ifile))
+		    tifiles_file_display_tigroup(ifile);
+	    else {
+		    fprintf(stderr, "invalid filetype\n");
+		    ret =1;
+	    }
+	}
         
-        if (curmode==MODE_EX){
-            //printf("%x [%s]\n",(void*)ifile,ifile);
-            if (tifiles_file_is_group(ifile))
-                tifiles_ungroup_file(ifile, NULL);
-            else if(tifiles_file_is_tigroup(ifile))
-                tifiles_untigroup_file(ifile, NULL);
-            else {
-                fprintf(stderr, "invalid filetype\n");
-                ret = 1;
-            }
-        }
-        else if (curmode==MODE_CREATE) {
-            // //printf("%x [%s]\n",(void*)ifile,ifile);
-            char **ifiles = NULL;
-            
-            int n = (argc - optind + 1);
-            
-            if (( ifiles = (char **)malloc((n + 1) * sizeof(char *))) == NULL)
-                ret = 1;
-            else {
-                int i;
-                for (i = 0; i < (n); i++) 
-                {
-                    ifiles[i] = argv[optind + i];              
-                }
-                ifiles[i] = NULL;
-                
-                ret = tifiles_group_files(ifiles, ofile);
-                            
-                free(ifiles);
-            }
-        }
-        else if (curmode==MODE_LS) {
-            //printf("%x [%s]\n",(void*)ifile,ifile);
-            if (tifiles_file_is_regular(ifile))
-                tifiles_file_display(ifile);
-            else if(tifiles_file_is_tigroup(ifile))
-                tifiles_file_display_tigroup(ifile);
-            else {
-                fprintf(stderr, "invalid filetype\n");
-                ret =1;
-            }
-        }
-        
-        tifiles_library_exit();
-    }
+	tifiles_library_exit();
+	
     return ret;
 }
