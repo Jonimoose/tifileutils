@@ -54,11 +54,11 @@ static const GOptionEntry options[] =
 
 static void print_usage(GOptionContext *ctx)
 {
-	char *usage = g_option_context_get_help(ctx, TRUE, NULL);
-	g_printerr("%s", usage);
-	g_free(usage);
-	g_option_context_free(ctx);
-	exit(1);
+    char *usage = g_option_context_get_help(ctx, TRUE, NULL);
+    g_printerr("%s", usage);
+    g_free(usage);
+    g_option_context_free(ctx);
+    exit(1);
 }
 
 int
@@ -67,98 +67,80 @@ main(int argc, char *argv[])
     char *ifile=NULL;
     int ret = 0;
 
-	GError *err = NULL;
+    GError *err = NULL;
     GOptionContext *ctx;
     
     setlocale(LC_ALL, "");
 	
-	ctx = g_option_context_new ("");
-	g_option_context_add_main_entries (ctx, options, NULL);
+    ctx = g_option_context_new ("");
+    g_option_context_add_main_entries (ctx, options, NULL);
 
       
     if (!g_option_context_parse(ctx, &argc, &argv, &err)) {
-		g_printerr("%s: %s\n", g_get_prgname(), err->message);
-		g_error_free(err);
-		print_usage(ctx);
-	}
+	g_printerr("%s: %s\n", g_get_prgname(), err->message);
+	g_error_free(err);
+	print_usage(ctx);
+    }
     
     if (showversion) {
-	    g_print("%s (%s)\n"
-		    "Copyright (C) 2010 Jon Sturm\n"
-		    "This program is free software. "
-		    " There is NO WARRANTY of any kind.\n"
-		    "Report bugs to %s.\n",
-			g_get_prgname(), "Ti File Utils", "jonimoose@gmail.com");
-		exit(0);
-	}
+	g_print("%s (%s)\n"
+		"Copyright (C) 2010 Jon Sturm\n"
+		"This program is free software. "
+		" There is NO WARRANTY of any kind.\n"
+		"Report bugs to %s.\n",
+		g_get_prgname(), "Ti File Utils", "jonimoose@gmail.com");
+	exit(0);
+    }
     
     /* check for unparsed options/filenames */
-	if (argc != 1)
-		print_usage(ctx);
-    
-	tifiles_library_init();
-	
-	if (extract){
-		ifile = extract;
-		//printf("%x [%s]\n",(void*)ifile,ifile);
-		if (tifiles_file_is_group(ifile))
-			tifiles_ungroup_file(ifile, NULL);
-		else if(tifiles_file_is_tigroup(ifile))
-			tifiles_untigroup_file(ifile, NULL);
-		else {
-			fprintf(stderr, "Invalid or missing input file.\n");
-			ret = 1;
-		}
-	}
-	else if (create) {
-		// //printf("%x [%s]\n",(void*)ifile,ifile);
-		//char **ifiles = NULL;
-		//
-		//int n = (argc - optind + 1);
-		//
-		//if (( ifiles = (char **)malloc((n + 1) * sizeof(char *))) == NULL)
-			//ret = 1;
-		//else {
-			//int i;
-			//for (i = 0; i < (n); i++) 
-			//{
-				//ifiles[i] = argv[optind + i];              
-			//}
-			//ifiles[i] = NULL;
-			
-			ret = tifiles_group_files(input_files, create);
-						
-			//free(ifiles);
-		// }
-	}
-	else if (append) {
-	    if (tifiles_file_is_group(input_files[0]) && tifiles_file_is_single(append))
-		ret = tifiles_group_add_file(append, input_files[0]);
-	    else if(tifiles_file_is_tigroup(input_files[0]) && tifiles_file_is_single(append))
-		ret = tifiles_tigroup_add_file(append, input_files[0]);
-	    else {
-		fprintf(stderr, "Invalid or missing input file.\n");
-			ret = 1;
-	    }
-	}
-	if (list || verbose) {
-	    if (list)
-	    ifile = list;
-	    else
-		ifile = input_files[0];
+    if (argc != 1)
+	print_usage(ctx);
 
-	    //printf("%x [%s]\n",(void*)ifile,ifile);
-	    if (tifiles_file_is_regular(ifile))
-		    tifiles_file_display(ifile);
-	    else if(tifiles_file_is_tigroup(ifile))
-		    tifiles_file_display_tigroup(ifile);
-	    else {
-		    fprintf(stderr, "invalid filetype\n");
-		    ret =1;
-	    }
+    tifiles_library_init();
+    
+    if (extract){
+	ifile = extract;
+	//printf("%x [%s]\n",(void*)ifile,ifile);
+	if (tifiles_file_is_group(ifile))
+	    tifiles_ungroup_file(ifile, NULL);
+	else if(tifiles_file_is_tigroup(ifile))
+	    tifiles_untigroup_file(ifile, NULL);
+	else {
+	    fprintf(stderr, "Invalid or missing input file.\n");
+	    ret = 1;
 	}
-        
-	tifiles_library_exit();
+    }
+    else if (create) {
+	ret = tifiles_group_files(input_files, create);
+    }
+    else if (append) {
+	if (tifiles_file_is_group(input_files[0]) && tifiles_file_is_single(append))
+	    ret = tifiles_group_add_file(append, input_files[0]);
+	else if(tifiles_file_is_tigroup(input_files[0]) && tifiles_file_is_single(append))
+	    ret = tifiles_tigroup_add_file(append, input_files[0]);
+	else {
+	    fprintf(stderr, "Invalid or missing input file.\n");
+	    ret = 1;
+	}
+    }
+    if (list || verbose) {
+	if (list)
+	ifile = list;
+	else
+	    ifile = input_files[0];
+
+	//printf("%x [%s]\n",(void*)ifile,ifile);
+	if (tifiles_file_is_regular(ifile))
+	    tifiles_file_display(ifile);
+	else if(tifiles_file_is_tigroup(ifile))
+	    tifiles_file_display_tigroup(ifile);
+	else {
+	    fprintf(stderr, "invalid filetype\n");
+	    ret =1;
+	}
+    }
+    
+    tifiles_library_exit();
 	
     return ret;
 }
