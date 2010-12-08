@@ -33,18 +33,21 @@ static char *list = FALSE;
 static char **input_files = NULL;
 static char *extract = NULL;
 static char *create = NULL;
+static char *append = NULL;
 
 static const GOptionEntry options[] =
   {{ "extract", 'x', 0, G_OPTION_ARG_STRING, &extract,
-     "Extract contents from FILE", "FILE" },
-   { "list", 'l', 0, G_OPTION_ARG_STRING, &list,
-     "List FILE contents", "FILE" },
+     "extract FILE contents", "FILE" },
+   { "list", 't', 0, G_OPTION_ARG_STRING, &list,
+     "list FILE contents", "FILE" },
    { "create", 'c', 0, G_OPTION_ARG_STRING, &create,
-     "Create new group FILE", "FILE" }, 
+     "create new group FILE", "FILE" },
+   { "append", 'r', 0, G_OPTION_ARG_STRING, &append,
+     "append FILE to group", "FILE" },
    { "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose,
-     "Show details of link operations", NULL },
+     "increase verbosity", NULL },
    { "version", 0, 0, G_OPTION_ARG_NONE, &showversion,
-     "Display program version info", NULL },
+     "print program version info", NULL },
    { G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &input_files,
      NULL, "[FILES]" },
    { 0, 0, 0, 0, 0, 0, 0 }};
@@ -128,8 +131,22 @@ main(int argc, char *argv[])
 			//free(ifiles);
 		// }
 	}
-	else if (list) {
+	else if (append) {
+	    if (tifiles_file_is_group(input_files[0]) && tifiles_file_is_single(append))
+		ret = tifiles_group_add_file(append, input_files[0]);
+	    else if(tifiles_file_is_tigroup(input_files[0]) && tifiles_file_is_single(append))
+		ret = tifiles_tigroup_add_file(append, input_files[0]);
+	    else {
+		fprintf(stderr, "Invalid or missing input file.\n");
+			ret = 1;
+	    }
+	}
+	if (list || verbose) {
+	    if (list)
 	    ifile = list;
+	    else
+		ifile = input_files[0];
+
 	    //printf("%x [%s]\n",(void*)ifile,ifile);
 	    if (tifiles_file_is_regular(ifile))
 		    tifiles_file_display(ifile);
