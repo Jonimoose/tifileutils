@@ -1,5 +1,5 @@
 /*
- * Ti File Utils
+ * TIUtils, TI File Utilities
  *
  * Copyright (c) 2010 Jon Sturm
  *
