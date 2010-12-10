@@ -29,21 +29,24 @@
 
 static gboolean verbose = FALSE;
 static gboolean showversion = FALSE;
-static char *list = FALSE;
+static gboolean *list = FALSE;
+static gboolean *extract = FALSE;
+static gboolean *create = FALSE;
+static gboolean *append = FALSE;
+static char *ifile = NULL;
 static char **input_files = NULL;
-static char *extract = NULL;
-static char *create = NULL;
-static char *append = NULL;
 
 static const GOptionEntry options[] =
-  {{ "extract", 'x', 0, G_OPTION_ARG_STRING, &extract,
-     "extract FILE contents", "FILE" },
-   { "list", 't', 0, G_OPTION_ARG_STRING, &list,
-     "list FILE contents", "FILE" },
-   { "create", 'c', 0, G_OPTION_ARG_STRING, &create,
-     "create new group FILE", "FILE" },
-   { "append", 'r', 0, G_OPTION_ARG_STRING, &append,
-     "append FILE to group", "FILE" },
+  {{ "extract", 'x', 0, G_OPTION_ARG_NONE, &extract,
+     "extract group contents", NULL },
+   { "list", 't', 0, G_OPTION_ARG_NONE, &list,
+     "list group contents", NULL },
+   { "create", 'c', 0, G_OPTION_ARG_NONE, &create,
+     "create new group", NULL },
+   { "append", 'r', 0, G_OPTION_ARG_NONE, &append,
+     "append to group", NULL },
+   { "file", 'f', 0, G_OPTION_ARG_STRING, &ifile,
+     "use group file (required, stdin/stout not supported)", "FILE" },
    { "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose,
      "increase verbosity", NULL },
    { "version", 0, 0, G_OPTION_ARG_NONE, &showversion,
@@ -64,7 +67,6 @@ static void print_usage(GOptionContext *ctx)
 int
 main(int argc, char *argv[])
 {
-    char *ifile=NULL;
     int ret = 0;
 
     GError *err = NULL;
@@ -99,7 +101,6 @@ main(int argc, char *argv[])
     tifiles_library_init();
     
     if (extract){
-	ifile = extract;
 	//printf("%x [%s]\n",(void*)ifile,ifile);
 	if (tifiles_file_is_group(ifile))
 	    tifiles_ungroup_file(ifile, NULL);
@@ -111,24 +112,19 @@ main(int argc, char *argv[])
 	}
     }
     else if (create) {
-	ret = tifiles_group_files(input_files, create);
+	ret = tifiles_group_files(input_files, ifile);
     }
     else if (append) {
-	if (tifiles_file_is_group(input_files[0]) && tifiles_file_is_single(append))
-	    ret = tifiles_group_add_file(append, input_files[0]);
-	else if(tifiles_file_is_tigroup(input_files[0]) && tifiles_file_is_single(append))
-	    ret = tifiles_tigroup_add_file(append, input_files[0]);
+	if (tifiles_file_is_group(ifile) && tifiles_file_is_single(input_files[0]))
+	    ret = tifiles_group_add_file(input_files[0], ifile);
+	else if(tifiles_file_is_tigroup(ifile) && tifiles_file_is_single(input_files[0]))
+	    ret = tifiles_tigroup_add_file(ifile, ifile);
 	else {
 	    fprintf(stderr, "Invalid or missing input file.\n");
 	    ret = 1;
 	}
     }
-    if (list || verbose) {
-	if (list)
-	ifile = list;
-	else
-	    ifile = input_files[0];
-
+    if ((list || verbose) && ifile) {
 	//printf("%x [%s]\n",(void*)ifile,ifile);
 	if (tifiles_file_is_regular(ifile))
 	    tifiles_file_display(ifile);
