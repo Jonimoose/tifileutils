@@ -84,6 +84,8 @@ main(int argc, char *argv[])
 	print_usage(ctx);
     }
     
+    g_option_context_free(ctx);
+    
     if (showversion) {
 	g_print("%s (%s)\n"
 		"Copyright (C) 2010 Jon Sturm\n"
@@ -136,7 +138,10 @@ main(int argc, char *argv[])
 	}
     }
     
+    g_free(ifile);
+    g_strfreev(input_files);
+    
     tifiles_library_exit();
 	
-    return ret;
+    exit(ret);
 }
