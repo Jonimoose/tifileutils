@@ -198,10 +198,12 @@ main(int argc, char *argv[])
                     
                     strcpy(regular->entries[entry]->name, str);
                 }
-                if (verbose)
+                
+		tifiles_file_write_regular(ifile, regular, NULL);
+		
+		if (verbose)
                     tifiles_file_display(ifile);
 		
-                tifiles_file_write_regular(ifile, regular, NULL);
             }
         }
         else {
