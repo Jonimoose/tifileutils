@@ -174,11 +174,11 @@ main(int argc, char *argv[])
                     regular->entries[entry]->attr=attr;
                 }
                 
-                if (foldname!=NULL && tifiles_calc_is_ti9x(model)){
-                    if(strlen(foldname) > 8)
-                        foldname[8] = '\0';
+                if (folder!=NULL && tifiles_calc_is_ti9x(model)){
+                    if(strlen(folder) > 8)
+                        folder[8] = '\0';
                     
-                    strcpy(regular->entries[entry]->folder, foldname);
+                    strcpy(regular->entries[entry]->folder, folder);
                 }
                 
                 
