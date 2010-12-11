@@ -39,7 +39,7 @@ static gboolean showversion = FALSE;
 static gboolean info = FALSE;
 
 static const GOptionEntry options[] =
-  {{ "entry", 'e', 0, G_OPTION_ARG_STRING, &entry,
+  {{ "entry", 'e', 0, G_OPTION_ARG_INT, &entry,
      "File entry number N (indexed from 0)", "N" },
    { "attr", 'a', 0, G_OPTION_ARG_STRING, &attrs,
      "Set Attribute", "ATTR" },
