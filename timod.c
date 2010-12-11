@@ -104,7 +104,6 @@ main(int argc, char *argv[])
     char *ifile = NULL;
     int attr = -1;
     int ret = 0;
-    char *name = NULL, *foldname = NULL, *comment = NULL;
     FileContent *regular;
     GError *err = NULL;
     GOptionContext *ctx;
