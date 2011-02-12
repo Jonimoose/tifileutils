@@ -4,6 +4,6 @@ LDADD = $(GLIB_LIBS) $(TIFILES_LIBS) $(TICONV_LIBS)
 
 bin_PROGRAMS = tigrp timod 
 
-tigrp_SOURCES = tigrp.c
+tigrp_SOURCES = tigrp.c common.c
 
-timod_SOURCES = timod.c
+timod_SOURCES = timod.c common.c

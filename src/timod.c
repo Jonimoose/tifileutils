@@ -17,7 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,6 +28,7 @@
 #include <string.h>
 #include <tifiles.h>
 #include <ticonv.h>
+#include "tiutils.h"
 
 
 static char *name = NULL;
@@ -34,8 +37,6 @@ static char *comment = NULL;
 static char *attrs = NULL;
 static char **input_files = NULL;
 static int entry = 0;
-static gboolean verbose = FALSE;
-static gboolean showversion = FALSE;
 static gboolean info = FALSE;
 
 static const GOptionEntry options[] =
@@ -51,24 +52,9 @@ static const GOptionEntry options[] =
      "Set entry folder (86k calcs only otherwise ignored)", "FOLDER" },
    { "info", 'i', 0, G_OPTION_ARG_NONE, &info,
      "Display file contents and info", NULL },  
-   { "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose,
-     "Show details of link operations", NULL },
-   { "version", 0, 0, G_OPTION_ARG_NONE, &showversion,
-     "Display program version info", NULL },
    { G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &input_files,
      NULL, "FILE" },
    { 0, 0, 0, 0, 0, 0, 0 }};
-
-/* Print out command-line help text, and exit */
-static void print_usage(GOptionContext *ctx)
-{
-    char *usage = g_option_context_get_help(ctx, TRUE, NULL);
-    g_printerr("%s", usage);
-    g_free(usage);
-    g_option_context_free(ctx);
-    exit(1);
-}
-
 
 /* Check if variable name should be tokenized.
    ticonv_varname_tokenize() should probably be more selective... */
@@ -105,37 +91,9 @@ main(int argc, char *argv[])
     int attr = -1;
     int ret = 0;
     FileContent *regular;
-    GError *err = NULL;
-    GOptionContext *ctx;
-    
-    setlocale(LC_ALL, "");
-	
-    ctx = g_option_context_new ("");
-    g_option_context_add_main_entries (ctx, options, NULL);
 
-      
-    if (!g_option_context_parse(ctx, &argc, &argv, &err)) {
-	g_printerr("%s: %s\n", g_get_prgname(), err->message);
-	g_error_free(err);
-	print_usage(ctx);
-    }
-    
-    g_option_context_free(ctx);
-    
-    if (showversion) {
-	g_print("%s (%s)\n"
-		"Copyright (C) 2010 Jon Sturm\n"
-		"This program is free software. "
-		" There is NO WARRANTY of any kind.\n"
-		"Report bugs to %s.\n",
-		g_get_prgname(), "Ti File Utils", "jonimoose@gmail.com");
-	exit(0);
-    }
-    
-    /* check for unparsed options/filenames */
-    if (argc != 1)
-	print_usage(ctx);
-    
+    tu_init(argc, argv, options);
+
     if (attrs){
 	if (!strcmp("locked",attrs)) {
 	    attr = ATTRB_LOCKED;
@@ -151,9 +109,7 @@ main(int argc, char *argv[])
 	}
     }
     
-    tifiles_library_init();
-    
-    if (!info && (attr || comment || folder || name)) {
+    if (!info && (attr || comment || folder || name) && input_files) {
         
         // printf("%x [%s]\n",(void*)ifile,ifile);
         ifile = input_files[0];
@@ -223,7 +179,7 @@ main(int argc, char *argv[])
     } 
     
     
-    tifiles_library_exit();
+    tu_exit();
 
     exit(ret);
 }
