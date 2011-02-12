@@ -17,7 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,9 +28,8 @@
 #include <string.h>
 #include <tifiles.h>
 #include <ticonv.h>
+#include "tiutils.h"
 
-static gboolean verbose = FALSE;
-static gboolean showversion = FALSE;
 static gboolean *list = FALSE;
 static gboolean *extract = FALSE;
 static gboolean *create = FALSE;
@@ -47,61 +48,17 @@ static const GOptionEntry options[] =
      "append to group", NULL },
    { "file", 'f', 0, G_OPTION_ARG_STRING, &ifile,
      "use group file (required, stdin/stout not supported)", "FILE" },
-   { "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose,
-     "increase verbosity", NULL },
-   { "version", 0, 0, G_OPTION_ARG_NONE, &showversion,
-     "print program version info", NULL },
    { G_OPTION_REMAINING, 0, 0, G_OPTION_ARG_FILENAME_ARRAY, &input_files,
      NULL, "[FILES]" },
    { 0, 0, 0, 0, 0, 0, 0 }};
-
-static void print_usage(GOptionContext *ctx)
-{
-    char *usage = g_option_context_get_help(ctx, TRUE, NULL);
-    g_printerr("%s", usage);
-    g_free(usage);
-    g_option_context_free(ctx);
-    exit(1);
-}
 
 int
 main(int argc, char *argv[])
 {
     int ret = 0;
 
-    GError *err = NULL;
-    GOptionContext *ctx;
-    
-    setlocale(LC_ALL, "");
-	
-    ctx = g_option_context_new ("");
-    g_option_context_add_main_entries (ctx, options, NULL);
+    tu_init(argc, argv, options);
 
-      
-    if (!g_option_context_parse(ctx, &argc, &argv, &err)) {
-	g_printerr("%s: %s\n", g_get_prgname(), err->message);
-	g_error_free(err);
-	print_usage(ctx);
-    }
-    
-    g_option_context_free(ctx);
-    
-    if (showversion) {
-	g_print("%s (%s)\n"
-		"Copyright (C) 2010 Jon Sturm\n"
-		"This program is free software. "
-		" There is NO WARRANTY of any kind.\n"
-		"Report bugs to %s.\n",
-		g_get_prgname(), "Ti File Utils", "jonimoose@gmail.com");
-	exit(0);
-    }
-    
-    /* check for unparsed options/filenames */
-    if (argc != 1)
-	print_usage(ctx);
-
-    tifiles_library_init();
-    
     if (extract){
 	//printf("%x [%s]\n",(void*)ifile,ifile);
 	if (tifiles_file_is_group(ifile))
@@ -141,7 +98,7 @@ main(int argc, char *argv[])
     g_free(ifile);
     g_strfreev(input_files);
     
-    tifiles_library_exit();
+    tu_exit();
 	
     exit(ret);
 }
